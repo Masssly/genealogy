@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Genealogy Dashboard</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* small local tweaks so the embed looks neat */
+    #qb-container { margin: 12px 0; }
+    #qb-iframe { width: 100%; height: 600px; border: 1px solid #ccc; }
+    .module .note { color: #444; font-size: 0.95rem; margin-top: 6px; }
+    .module h2 { margin: 0 0 6px 0; }
+  </style>
 </head>
 <body>
   <header>
@@ -19,7 +26,60 @@
 
     <!-- Placeholder for modules -->
     <section id="modules">
-      <!-- Each module (e.g., table, graph) will be loaded here -->
+      <!-- ===========================
+           Embedded SPARQL Query Module
+           - Shows a live (embedded) Query UI view of "instance of = human"
+           - If embedding is blocked, users can click "Open in Query UI"
+           ============================ -->
+      <section id="embedded-query" class="module">
+        <h2>Embedded: Humans (sample, up to 50)</h2>
+        <p class="note">Live view from your Wikibase Query UI (table). If the instance allows framing, results will appear below. Otherwise use the "Open in Query UI" link.</p>
+
+        <div id="qb-container">
+          <iframe id="qb-iframe" title="Embedded Wikibase Query UI"></iframe>
+        </div>
+
+        <p class="note">
+          <a id="open-query-link" href="#" target="_blank" rel="noopener noreferrer">Open this query in a new tab</a>
+        </p>
+
+        <script>
+          (function () {
+            // The SPARQL query we want to embed (instance-of human, limited to 50)
+            const sparql = `
+PREFIX mwd: <https://masssly.wikibase.cloud/entity/>
+PREFIX mwdt: <https://masssly.wikibase.cloud/prop/direct/>
+SELECT ?item ?itemLabel WHERE {
+  ?item mwdt:P3 mwd:Q4 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}
+LIMIT 50
+            `.trim();
+
+            // Embed base (Query UI embed page)
+            const embedBase = "https://masssly.wikibase.cloud/query/embed.html";
+            // Normal Query UI view (open in new tab) - often the non-embed page is /query/
+            const normalBase = "https://masssly.wikibase.cloud/query/";
+
+            // Build encoded URLs
+            const encoded = encodeURIComponent(sparql);
+            const embedUrl = embedBase + "#?query=" + encoded + "&view=Table";
+            const normalUrl = normalBase + "?query=" + encoded;
+
+            // Set iframe src and the fallback link
+            const iframe = document.getElementById("qb-iframe");
+            const link = document.getElementById("open-query-link");
+
+            iframe.src = embedUrl;
+            link.href = normalUrl;
+
+            // Small UX: if the iframe does not load visually, the user can open the query.
+            // Note: we cannot reliably detect cross-origin iframe blocking in JS, so just provide the link.
+          })();
+        </script>
+      </section>
+
+      <!-- Other modular content will be loaded by scripts (utils + modules) -->
     </section>
   </main>
 
@@ -27,7 +87,7 @@
     <p>&copy; 2025 Masssly</p>
   </footer>
 
-  <!-- Load modular JS files -->
+  <!-- Load modular JS files (keep these at the end so DOM is ready) -->
   <script src="js/utils.js"></script>
   <script src="modules/exampleModule.js"></script>
 </body>
