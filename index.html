@@ -19,6 +19,8 @@
     <p>Visualize and explore family data from Wikibase Cloud</p>
   </header>
 
+<iframe style="width: 80vw; height: 50vh; border: none;" src="./embed.html#%23title%3A%20All%20%22instance%20of%20(P3)%22%20values%20currently%20in%20use%0A%23%20This%20query%20returns%20all%20distinct%20instance-of%20values%20(P3)%20currently%20assigned%20to%20items%0A%23%20and%20shows%20how%20many%20items%20have%20each%20instance.%0A%23%20Useful%20to%20see%20which%20categories%20are%20being%20used%20(Human%2C%20Place%2C%20Object%2C%20etc.)%0A%0APREFIX%20mwd%3A%20%3Chttps%3A%2F%2Fmasssly.wikibase.cloud%2Fentity%2F%3E%0APREFIX%20mwdt%3A%20%3Chttps%3A%2F%2Fmasssly.wikibase.cloud%2Fprop%2Fdirect%2F%3E%0APREFIX%20mwds%3A%20%3Chttps%3A%2F%2Fmasssly.wikibase.cloud%2Fprop%2Fstatement%2F%3E%0A%0ASELECT%20%3Finstance%20%3FinstanceLabel%20(COUNT(%3Fitem)%20AS%20%3FnumItems)%0AWHERE%20%7B%0A%20%20%23%20Step%201%3A%20Get%20all%20items%20that%20have%20an%20%22instance%20of%20(P3)%22%20statement%0A%20%20%3Fitem%20mwdt%3AP3%20%3Finstance%20.%0A%20%20%0A%20%20%23%20Step%202%3A%20Only%20take%20items%20that%20have%20a%20label%2C%20to%20filter%20out%20anything%20unusual%0A%20%20%3Fitem%20rdfs%3Alabel%20%3Flabel%20.%0A%20%20%0A%20%20%23%20Step%203%3A%20Get%20human-readable%20labels%20for%20instance%20values%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22en%22.%20%7D%0A%7D%0AGROUP%20BY%20%3Finstance%20%3FinstanceLabel%0AORDER%20BY%20DESC(%3FnumItems)%0A" referrerpolicy="origin" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+  
   <main>
     <section id="welcome">
       <p>Welcome! This is your modular genealogy dashboard.</p>
