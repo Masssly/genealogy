@@ -24,6 +24,47 @@
       <p>Welcome! This is your modular genealogy dashboard.</p>
     </section>
 
+<section id="embedded-query">
+  <h2>All “instance of (P3)” values currently in use</h2>
+  <div id="query-results">Loading…</div>
+
+  <script>
+    const endpoint = "https://masssly.wikibase.cloud/query/sparql";
+    const query = `
+      SELECT ?instance ?instanceLabel (COUNT(?item) AS ?numItems)
+      WHERE {
+        ?item <https://masssly.wikibase.cloud/prop/direct/P3> ?instance .
+        ?item rdfs:label ?label .
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+      }
+      GROUP BY ?instance ?instanceLabel
+      ORDER BY DESC(?numItems)
+    `;
+
+    fetch(endpoint + "?query=" + encodeURIComponent(query), {
+      headers: { "Accept": "application/sparql-results+json" }
+    })
+      .then(res => res.json())
+      .then(json => {
+        let html = "<table border='1' style='border-collapse:collapse;width:100%'>";
+        html += "<tr><th>Instance</th><th>Label</th><th>Count</th></tr>";
+        json.results.bindings.forEach(row => {
+          html += `<tr>
+                     <td><a href="${row.instance.value}" target="_blank">${row.instance.value}</a></td>
+                     <td>${row.instanceLabel ? row.instanceLabel.value : ""}</td>
+                     <td>${row.numItems.value}</td>
+                   </tr>`;
+        });
+        html += "</table>";
+        document.getElementById("query-results").innerHTML = html;
+      })
+      .catch(err => {
+        document.getElementById("query-results").innerHTML = "Error: " + err;
+      });
+  </script>
+</section>
+
+    
     <!-- Placeholder for modules -->
     <section id="modules">
       <!-- ===========================
