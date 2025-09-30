@@ -1,0 +1,79 @@
+name: Fetch SPARQL data
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}       # allows manual runs from Actions UI
+  schedule:
+    - cron: '0 2 * * *'       # daily at 02:00 UTC (adjust if needed)
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Ensure data directory exists
+        run: mkdir -p data
+
+      - name: Fetch SPARQL results (humans)
+        env:
+          ENDPOINT: https://masssly.wikibase.cloud/query/sparql
+        run: |
+          set -e
+          echo "Preparing SPARQL query..."
+          cat > /tmp/query.sparql <<'SPARQL'
+PREFIX mwd: <https://masssly.wikibase.cloud/entity/>
+PREFIX mwdt: <https://masssly.wikibase.cloud/prop/direct/>
+SELECT ?item ?itemLabel ?dob ?image WHERE {
+  ?item mwdt:P3 mwd:Q4 .
+  OPTIONAL { ?item mwdt:P21 ?dob. }
+  OPTIONAL { ?item mwdt:P1 ?image. }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}
+ORDER BY ?itemLabel
+LIMIT 200
+SPARQL
+
+          # URL-encode the query using python
+          ENCODED_QUERY=$(python3 - <<PY
+import urllib.parse,sys
+q = sys.stdin.read()
+print(urllib.parse.quote(q))
+PY
+) < /tmp/query.sparql
+
+          URL="${ENDPOINT}?query=${ENCODED_QUERY}"
+          echo "Fetching from ${ENDPOINT} ..."
+          curl -s -H "Accept: application/sparql-results+json" "$URL" -o data/humans.json || (echo "curl failed"; exit 2)
+
+          # quick validation: try to parse JSON and ensure "results" present
+          python3 - <<PY
+import json,sys
+try:
+  d = json.load(open('data/humans.json'))
+except Exception as e:
+  print("JSON parse error:", e)
+  sys.exit(3)
+if 'results' not in d or 'bindings' not in d['results']:
+  print("Warning: JSON does not look like SPARQL results (missing results.bindings).")
+  sys.exit(4)
+print("SPARQL fetch OK. items:", len(d['results']['bindings']))
+PY
+
+      - name: Commit and push data file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/humans.json
+          # only commit if there are changes
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update humans.json (via GitHub Actions)"
+            git push origin HEAD:main
+          fi
