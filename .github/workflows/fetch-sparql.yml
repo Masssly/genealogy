@@ -25,23 +25,13 @@ jobs:
           ENDPOINT: https://masssly.wikibase.cloud/query/sparql
         run: |
           set -euo pipefail
-          echo "Writing SPARQL query to /tmp/query.sparql ..."
-          cat > /tmp/query.sparql <<'SPARQL'
-PREFIX mwd: <https://masssly.wikibase.cloud/entity/>
-PREFIX mwdt: <https://masssly.wikibase.cloud/prop/direct/>
-SELECT ?item ?itemLabel ?dob ?image WHERE {
-  ?item mwdt:P3 mwd:Q4 .
-  OPTIONAL { ?item mwdt:P21 ?dob. }
-  OPTIONAL { ?item mwdt:P1 ?image. }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-}
-ORDER BY ?itemLabel
-LIMIT 200
-SPARQL
+
+          # build the SPARQL query as a single bash string (safer for YAML)
+          QUERY=$'PREFIX mwd: <https://masssly.wikibase.cloud/entity/>\nPREFIX mwdt: <https://masssly.wikibase.cloud/prop/direct/>\nSELECT ?item ?itemLabel ?dob ?image WHERE { ?item mwdt:P3 mwd:Q4 . OPTIONAL { ?item mwdt:P21 ?dob. } OPTIONAL { ?item mwdt:P1 ?image. } SERVICE wikibase:label { bd:serviceParam wikibase:language \"en\". } } ORDER BY ?itemLabel LIMIT 200'
 
           echo "Fetching SPARQL from $ENDPOINT ..."
-          # Use curl with --get and --data-urlencode to safely send the query in the URL
-          curl --silent --show-error --fail --get --data-urlencode "query@/tmp/query.sparql" \
+          # use curl --get with --data-urlencode to safely send the query
+          curl --silent --show-error --fail --get --data-urlencode "query=${QUERY}" \
             -H "Accept: application/sparql-results+json" \
             "$ENDPOINT" -o data/humans.json
 
@@ -55,8 +45,8 @@ except Exception as e:
     sys.exit(3)
 if not isinstance(d, dict) or 'results' not in d or 'bindings' not in d['results']:
     print("Warning: JSON does not look like SPARQL results (missing results.bindings).")
-    print("First 400 chars of the response:")
-    print(open('data/humans.json').read()[:400])
+    print("First 600 chars of the response:")
+    print(open('data/humans.json').read()[:600])
     sys.exit(4)
 print("SPARQL fetch OK. items:", len(d['results']['bindings']))
 PY
