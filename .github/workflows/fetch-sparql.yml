@@ -3,9 +3,9 @@ name: Fetch SPARQL data
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: {}       # allows manual runs from Actions UI
+  workflow_dispatch: {}
   schedule:
-    - cron: '0 2 * * *'       # daily at 02:00 UTC (adjust if needed)
+    - cron: '0 2 * * *'    # daily at 02:00 UTC
 
 jobs:
   fetch:
@@ -24,8 +24,8 @@ jobs:
         env:
           ENDPOINT: https://masssly.wikibase.cloud/query/sparql
         run: |
-          set -e
-          echo "Preparing SPARQL query..."
+          set -euo pipefail
+          echo "Writing SPARQL query to /tmp/query.sparql ..."
           cat > /tmp/query.sparql <<'SPARQL'
 PREFIX mwd: <https://masssly.wikibase.cloud/entity/>
 PREFIX mwdt: <https://masssly.wikibase.cloud/prop/direct/>
@@ -39,29 +39,25 @@ ORDER BY ?itemLabel
 LIMIT 200
 SPARQL
 
-          # URL-encode the query using python
-          ENCODED_QUERY=$(python3 - <<PY
-import urllib.parse,sys
-q = sys.stdin.read()
-print(urllib.parse.quote(q))
-PY
-) < /tmp/query.sparql
+          echo "Fetching SPARQL from $ENDPOINT ..."
+          # Use curl with --get and --data-urlencode to safely send the query in the URL
+          curl --silent --show-error --fail --get --data-urlencode "query@/tmp/query.sparql" \
+            -H "Accept: application/sparql-results+json" \
+            "$ENDPOINT" -o data/humans.json
 
-          URL="${ENDPOINT}?query=${ENCODED_QUERY}"
-          echo "Fetching from ${ENDPOINT} ..."
-          curl -s -H "Accept: application/sparql-results+json" "$URL" -o data/humans.json || (echo "curl failed"; exit 2)
-
-          # quick validation: try to parse JSON and ensure "results" present
-          python3 - <<PY
+          echo "Validating JSON..."
+          python3 - <<'PY'
 import json,sys
 try:
-  d = json.load(open('data/humans.json'))
+    d = json.load(open('data/humans.json'))
 except Exception as e:
-  print("JSON parse error:", e)
-  sys.exit(3)
-if 'results' not in d or 'bindings' not in d['results']:
-  print("Warning: JSON does not look like SPARQL results (missing results.bindings).")
-  sys.exit(4)
+    print("JSON parse error:", e)
+    sys.exit(3)
+if not isinstance(d, dict) or 'results' not in d or 'bindings' not in d['results']:
+    print("Warning: JSON does not look like SPARQL results (missing results.bindings).")
+    print("First 400 chars of the response:")
+    print(open('data/humans.json').read()[:400])
+    sys.exit(4)
 print("SPARQL fetch OK. items:", len(d['results']['bindings']))
 PY
 
@@ -70,7 +66,6 @@ PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/humans.json
-          # only commit if there are changes
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
