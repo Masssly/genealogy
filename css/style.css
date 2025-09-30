@@ -1,0 +1,23 @@
+/* module styles */
+.module {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 6px;
+}
+.example-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+.example-table th, .example-table td {
+  border: 1px solid #eee;
+  padding: 6px 8px;
+  text-align: left;
+}
+.example-table th {
+  background: #f7f7f7;
+  font-weight: 600;
+}
+.status { font-style: italic; color: #666; }
