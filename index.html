@@ -1,137 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Genealogy Dashboard</title>
-  <link rel="stylesheet" href="css/style.css" />
-  <style>
-    /* small local tweaks so the embed looks neat */
-    #qb-container { margin: 12px 0; }
-    #qb-iframe { width: 100%; height: 600px; border: 1px solid #ccc; }
-    .module .note { color: #444; font-size: 0.95rem; margin-top: 6px; }
-    .module h2 { margin: 0 0 6px 0; }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Genealogy Dashboard</h1>
-    <p>Visualize and explore family data from Wikibase Cloud</p>
-  </header>
-
-<iframe style="width: 80vw; height: 50vh; border: none;" src="./embed.html#%23title%3A%20All%20%22instance%20of%20(P3)%22%20values%20currently%20in%20use%0A%23%20This%20query%20returns%20all%20distinct%20instance-of%20values%20(P3)%20currently%20assigned%20to%20items%0A%23%20and%20shows%20how%20many%20items%20have%20each%20instance.%0A%23%20Useful%20to%20see%20which%20categories%20are%20being%20used%20(Human%2C%20Place%2C%20Object%2C%20etc.)%0A%0APREFIX%20mwd%3A%20%3Chttps%3A%2F%2Fmasssly.wikibase.cloud%2Fentity%2F%3E%0APREFIX%20mwdt%3A%20%3Chttps%3A%2F%2Fmasssly.wikibase.cloud%2Fprop%2Fdirect%2F%3E%0APREFIX%20mwds%3A%20%3Chttps%3A%2F%2Fmasssly.wikibase.cloud%2Fprop%2Fstatement%2F%3E%0A%0ASELECT%20%3Finstance%20%3FinstanceLabel%20(COUNT(%3Fitem)%20AS%20%3FnumItems)%0AWHERE%20%7B%0A%20%20%23%20Step%201%3A%20Get%20all%20items%20that%20have%20an%20%22instance%20of%20(P3)%22%20statement%0A%20%20%3Fitem%20mwdt%3AP3%20%3Finstance%20.%0A%20%20%0A%20%20%23%20Step%202%3A%20Only%20take%20items%20that%20have%20a%20label%2C%20to%20filter%20out%20anything%20unusual%0A%20%20%3Fitem%20rdfs%3Alabel%20%3Flabel%20.%0A%20%20%0A%20%20%23%20Step%203%3A%20Get%20human-readable%20labels%20for%20instance%20values%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22en%22.%20%7D%0A%7D%0AGROUP%20BY%20%3Finstance%20%3FinstanceLabel%0AORDER%20BY%20DESC(%3FnumItems)%0A" referrerpolicy="origin" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
-  
-  <main>
-    <section id="welcome">
-      <p>Welcome! This is your modular genealogy dashboard.</p>
-    </section>
-
-<section id="embedded-query">
-  <h2>All “instance of (P3)” values currently in use</h2>
-  <div id="query-results">Loading…</div>
-
-  <script>
-    const endpoint = "https://masssly.wikibase.cloud/query/sparql";
-    const query = `
-      SELECT ?instance ?instanceLabel (COUNT(?item) AS ?numItems)
-      WHERE {
-        ?item <https://masssly.wikibase.cloud/prop/direct/P3> ?instance .
-        ?item rdfs:label ?label .
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-      }
-      GROUP BY ?instance ?instanceLabel
-      ORDER BY DESC(?numItems)
-    `;
-
-    fetch(endpoint + "?query=" + encodeURIComponent(query), {
-      headers: { "Accept": "application/sparql-results+json" }
-    })
-      .then(res => res.json())
-      .then(json => {
-        let html = "<table border='1' style='border-collapse:collapse;width:100%'>";
-        html += "<tr><th>Instance</th><th>Label</th><th>Count</th></tr>";
-        json.results.bindings.forEach(row => {
-          html += `<tr>
-                     <td><a href="${row.instance.value}" target="_blank">${row.instance.value}</a></td>
-                     <td>${row.instanceLabel ? row.instanceLabel.value : ""}</td>
-                     <td>${row.numItems.value}</td>
-                   </tr>`;
-        });
-        html += "</table>";
-        document.getElementById("query-results").innerHTML = html;
-      })
-      .catch(err => {
-        document.getElementById("query-results").innerHTML = "Error: " + err;
-      });
-  </script>
-</section>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genealogy Explorer | Masssssly Family Tree</title>
     
-    <!-- Placeholder for modules -->
-    <section id="modules">
-      <!-- ===========================
-           Embedded SPARQL Query Module
-           - Shows a live (embedded) Query UI view of "instance of = human"
-           - If embedding is blocked, users can click "Open in Query UI"
-           ============================ -->
-      <section id="embedded-query" class="module">
-        <h2>Embedded: Humans (sample, up to 50)</h2>
-        <p class="note">Live view from your Wikibase Query UI (table). If the instance allows framing, results will appear below. Otherwise use the "Open in Query UI" link.</p>
-
-        <div id="qb-container">
-          <iframe id="qb-iframe" title="Embedded Wikibase Query UI"></iframe>
-        </div>
-
-        <p class="note">
-          <a id="open-query-link" href="#" target="_blank" rel="noopener noreferrer">Open this query in a new tab</a>
-        </p>
-
-        <script>
-          (function () {
-            // The SPARQL query we want to embed (instance-of human, limited to 50)
-            const sparql = `
-PREFIX mwd: <https://masssly.wikibase.cloud/entity/>
-PREFIX mwdt: <https://masssly.wikibase.cloud/prop/direct/>
-SELECT ?item ?itemLabel WHERE {
-  ?item mwdt:P3 mwd:Q4 .
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-}
-LIMIT 50
-            `.trim();
-
-            // Embed base (Query UI embed page)
-            const embedBase = "https://masssly.wikibase.cloud/query/embed.html";
-            // Normal Query UI view (open in new tab) - often the non-embed page is /query/
-            const normalBase = "https://masssly.wikibase.cloud/query/";
-
-            // Build encoded URLs
-            const encoded = encodeURIComponent(sparql);
-            const embedUrl = embedBase + "#?query=" + encoded + "&view=Table";
-            const normalUrl = normalBase + "?query=" + encoded;
-
-            // Set iframe src and the fallback link
-            const iframe = document.getElementById("qb-iframe");
-            const link = document.getElementById("open-query-link");
-
-            iframe.src = embedUrl;
-            link.href = normalUrl;
-
-            // Small UX: if the iframe does not load visually, the user can open the query.
-            // Note: we cannot reliably detect cross-origin iframe blocking in JS, so just provide the link.
-          })();
-        </script>
-      </section>
-
-      <!-- Other modular content will be loaded by scripts (utils + modules) -->
-    </section>
-  </main>
-
-  <footer>
-    <p>&copy; 2025 Masssly</p>
-  </footer>
-
-  <!-- Load modular JS files (keep these at the end so DOM is ready) -->
-  <script src="js/utils.js"></script>
-  <script src="modules/exampleModule.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen bg-[#fcfaf7]">
+    <div id="root"></div>
+    <script src="app.js"></script>
 </body>
 </html>
