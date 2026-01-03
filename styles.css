@@ -159,3 +159,186 @@ body {
         transform: translate(-50%, -50%) translateY(0) !important;
     }
 }
+
+/* Image Gallery Styles */
+#image-gallery-modal {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.gallery-thumbnail {
+    transition: all 0.2s ease;
+}
+
+.gallery-thumbnail:hover {
+    transform: scale(1.05);
+}
+
+.gallery-thumbnail.ring-amber-500 {
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.5);
+}
+
+/* Gallery navigation buttons */
+#prev-image, #next-image {
+    transition: all 0.2s ease;
+}
+
+#prev-image:hover, #next-image:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments for gallery */
+@media (max-width: 640px) {
+    #image-gallery-modal .bg-white {
+        margin: 0;
+        border-radius: 0;
+        max-height: 100vh;
+    }
+    
+    .gallery-thumbnail img {
+        width: 60px;
+        height: 60px;
+    }
+}
+/* --- D3 family tree node/link styles --- */
+.d3-link {
+    fill: none;
+    stroke: #cbd5e1; /* light gray/blue */
+    stroke-width: 2px;
+}
+
+.d3-node-rect {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.d3-node-text {
+    fill: #0f172a;
+}
+
+.d3-node-subtext {
+    fill: #6b7280;
+}
+
+/* Hover states */
+.d3-node:hover rect {
+    stroke: #f59e0b;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.d3-node:hover text.d3-node-text {
+    fill: #b45309;
+}
+
+/* Ensure SVG text isn't selectable while clicking */
+svg {
+    user-select: none;
+}
+
+/* -------------------------
+   Glass / Futuristic UI
+   ------------------------- */
+.glass-panel {
+    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.42));
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.35);
+    box-shadow: 0 6px 24px rgba(8,15,30,0.06);
+    border-radius: 16px;
+}
+
+/* Slightly stronger variant for cards */
+.glass-panel-strong {
+    background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.2));
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 10px 40px rgba(8,15,30,0.08);
+    border-radius: 16px;
+}
+
+/* Tree styles (D3) */
+.d3-link {
+    stroke: #cbd5e1;
+    stroke-width: 1.6;
+    fill: none;
+}
+
+.d3-node-rect {
+    transition: all .18s ease;
+}
+
+.d3-node:hover .d3-node-rect {
+    stroke: #f59e0b;
+    transform-origin: center;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+
+.d3-node-text {
+    fill: #0f172a;
+}
+
+.d3-node-subtext {
+    fill: #6b7280;
+}
+
+/* Avatar placeholder */
+.node-avatar-emoji {
+    pointer-events: none;
+}
+
+/* Buttons */
+button, .btn {
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+
+button:active, .btn:active {
+    transform: translateY(1px);
+}
+
+/* Responsive tweaks */
+@media (max-width: 1024px) {
+    .glass-panel {
+        border-radius: 12px;
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+    }
+
+    /* make sidebar collapse-friendly */
+    aside {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+    }
+}
+
+/* Make the main tree container scrollable on small screens */
+#family-tree, #tree-container, #family-tree-inline {
+    width: 100%;
+    overflow: auto;
+}
+
+/* ensure svg text not selectable on mobile */
+svg { user-select: none; -webkit-user-select: none; }
+
+/* small visual polish for inputs */
+input[type="text"], input[type="number"], select {
+    border: 1px solid rgba(15,23,42,0.06);
+    box-shadow: none;
+}
+
+/* Custom scrollbar (optional) */
+.custom-scrollbar::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.12);
+    border-radius: 100px;
+}
+
+/* Ensure mobile friendliness for tree node sizes */
+@media (max-width: 640px) {
+    .d3-node .d3-node-text { font-size: 13px; }
+    .d3-node-rect { width: 200px !important; }
+}
