@@ -3,21 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genealogy Explorer | Masssssly Family Tree</title>
-    
+    <title>Genealogy Explorer | Masssly Family Tree</title>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
+
+    <!-- dTree CSS (REQUIRED) -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/dtree@2.4.0/dist/dTree.min.css"
+    />
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body class="min-h-screen bg-[#fcfaf7]">
-    <div id="root"></div>
+
+    <!-- Root container -->
+    <div id="root">
+        <div class="h-screen flex flex-col items-center justify-center">
+            <div class="spinner"></div>
+            <p class="serif text-xl font-bold text-gray-700 mt-4">
+                Loading Genealogy Explorer...
+            </p>
+            <p class="text-sm text-gray-500 mt-2" id="loading-status">
+                Initializing
+            </p>
+        </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- External libraries -->
+    <!-- ========================= -->
+
+    <!-- D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- dTree -->
+    <script src="https://unpkg.com/dtree@2.4.0/dist/dTree.min.js"></script>
+
+    <!-- ========================= -->
+    <!-- Application modules -->
+    <!-- ========================= -->
+
+    <script src="modules/utils.js"></script>
+    <script src="modules/DataService.js"></script>
+    <script src="modules/ImageService.js"></script>
+    <script src="modules/UIRenderer.js"></script>
+    <script src="modules/FamilyTreeService.js"></script>
+
+    <!-- ========================= -->
+    <!-- Main application -->
+    <!-- ========================= -->
+
     <script src="app.js"></script>
+
 </body>
 </html>
