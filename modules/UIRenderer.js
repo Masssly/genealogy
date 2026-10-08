@@ -240,7 +240,13 @@ class UIRenderer {
         const allImages = await this.imageService.getAllPersonImages(this.app.selectedPerson.id);
         const profileImageUrl = allImages.length > 0 ? allImages[0] : null;
         const additionalImageCount = allImages.length - 1;
-        
+
+        // Image lookups are async, so resolve them all before counting
+        const imageLists = await Promise.all(
+            this.app.people.map(p => this.imageService.getAllPersonImages(p.id))
+        );
+        const peopleWithImages = imageLists.filter(imgs => imgs.length > 0).length;
+
         content.innerHTML = `
             <div class="max-w-4xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
@@ -266,9 +272,9 @@ class UIRenderer {
                                         <span class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-bold">
                                             ${this.app.selectedPerson.id}
                                         </span>
-                                        ${age !== null && `<span class="text-amber-200 font-bold">${age} years</span>`}
-                                        ${this.app.selectedPerson.birthOrder && `<span class="bg-amber-800 text-white px-3 py-1 rounded-full text-sm font-bold">${formatBirthOrder(this.app.selectedPerson.birthOrder)}</span>`}
-                                        ${additionalImageCount > 0 && `<span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold">${additionalImageCount}+ photos</span>`}
+                                        ${age !== null ? `<span class="text-amber-200 font-bold">${age} years</span>` : ''}
+                                        ${this.app.selectedPerson.birthOrder ? `<span class="bg-amber-800 text-white px-3 py-1 rounded-full text-sm font-bold">${formatBirthOrder(this.app.selectedPerson.birthOrder)}</span>` : ''}
+                                        ${additionalImageCount > 0 ? `<span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold">${additionalImageCount}+ photos</span>` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -423,7 +429,7 @@ class UIRenderer {
                         <div class="text-sm text-gray-600">With Aliases</div>
                     </div>
                     <div class="bg-white p-4 rounded-xl shadow border border-gray-200 text-center">
-                        <div class="text-2xl font-bold text-amber-700">${this.app.people.filter(p => this.imageService.getAllPersonImages(p.id).then(imgs => imgs.length > 0)).length}</div>
+                        <div class="text-2xl font-bold text-amber-700">${peopleWithImages}</div>
                         <div class="text-sm text-gray-600">With Images</div>
                     </div>
                 </div>
@@ -485,15 +491,14 @@ class UIRenderer {
         const refreshBtn = document.getElementById('refresh-btn');
         if (refreshBtn) {
             refreshBtn.addEventListener('click', async () => {
-                const originalText = refreshBtn.innerHTML;
                 refreshBtn.innerHTML = '<span>⏳</span><span>Loading...</span>';
                 refreshBtn.disabled = true;
-                
+
                 this.imageService.clearCache();
+                // loadData() replaces #root with a spinner, so rebuild the UI afterwards
                 await this.app.loadData();
-                
-                refreshBtn.innerHTML = originalText;
-                refreshBtn.disabled = false;
+                this.render();
+                this.setupEventListeners();
             });
         }
     }
