@@ -63,7 +63,8 @@ class FamilyTreeService {
         // Tree layout: swap size depending on orientation
         let treeLayout;
         if (cfg.orientation === 'vertical') {
-            treeLayout = d3.tree().nodeSize([depthSpacing, 260]);
+            // nodeSize is [breadth, depth]: 260 fits a 240px card plus a gap
+            treeLayout = d3.tree().nodeSize([260, depthSpacing]);
             treeLayout(root);
             // x = depth * stuff (root.x), y = root.y
         } else {

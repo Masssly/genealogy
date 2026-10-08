@@ -146,7 +146,11 @@ class UIRenderer {
         const stats = document.getElementById('stats-bar');
         
         if (!list || !stats) return;
-        
+
+        // Image lookups below are awaited per person, so a newer call can start
+        // mid-render; stale renders must stop or both append to the list
+        const renderId = this.listRenderId = (this.listRenderId || 0) + 1;
+
         const filteredPeople = this.app.people.filter(person => {
             const searchLower = this.app.searchQuery.toLowerCase();
             return (
@@ -195,7 +199,8 @@ class UIRenderer {
             const age = calculateAge(person.birthDate, person.deathDate);
             
             const imageUrl = await this.imageService.getBestImageUrl(person.id);
-            
+            if (renderId !== this.listRenderId) return;
+
             personEl.innerHTML = `
                 <div class="w-12 h-12 rounded-full bg-gray-100 flex-shrink-0 overflow-hidden border border-gray-200 flex items-center justify-center">
                     ${imageUrl 

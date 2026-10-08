@@ -88,7 +88,6 @@ class DataService {
                     }
                 }
                 ORDER BY ?personLabel
-                LIMIT 200
             `;
             
             const url = `${this.WIKIBASE_SPARQL_ENDPOINT}?query=${encodeURIComponent(query)}&format=json`;
